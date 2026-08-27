@@ -1,0 +1,24 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-worker-outbound",
+  "_rootDirectory": "backend",
+  "_purpose": "Dedicated worker for messaging/campaign sends. Keep replicas x CELERY_CONCURRENCY x per-task send rate under META_SEND_RATE_LIMIT (WABA ~80 msg/s).",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "backend/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash ../infra/scripts/start-worker.sh",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_extraEnv": {
+    "CELERY_QUEUES": "outbound",
+    "CELERY_CONCURRENCY": "2"
+  },
+  "_requiredEnv": [
+    "ENV", "LOG_LEVEL", "LOG_FORMAT", "DATABASE_URL", "REDIS_URL",
+    "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND",
+    "META_APP_SECRET", "META_ACCESS_TOKEN", "META_PHONE_NUMBER_ID"
+  ]
+}

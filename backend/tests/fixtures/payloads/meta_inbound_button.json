@@ -1,0 +1,32 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "16505551111",
+              "phone_number_id": "1234567890"
+            },
+            "contacts": [
+              {"profile": {"name": "Carol"}, "wa_id": "16175553333"}
+            ],
+            "messages": [
+              {
+                "from": "16175553333",
+                "id": "wamid.button.0001",
+                "timestamp": "1700000002",
+                "type": "button",
+                "button": {"payload": "BOOK_DEMO", "text": "Book a demo"}
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

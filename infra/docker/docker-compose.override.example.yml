@@ -1,0 +1,17 @@
+# Copy to docker-compose.override.yml for local-only customizations.
+# This file is loaded automatically by `docker compose` if present.
+
+services:
+  api:
+    volumes:
+      # Hot-reload code in development.
+      - ../../backend:/app
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+
+  worker:
+    volumes:
+      - ../../backend:/app
+
+  scheduler:
+    volumes:
+      - ../../backend:/app

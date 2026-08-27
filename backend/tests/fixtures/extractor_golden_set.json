@@ -1,0 +1,532 @@
+[
+  {
+    "raw_text": "WTB iPhone 16 Pro Max 256GB Black UK spec sealed",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "color": ["Black"],
+      "region": ["REGION_UK"]
+    }
+  },
+  {
+    "raw_text": "WTS Samsung S25 Ultra 512GB Titanium Black UAE stock Brand New",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["512GB"],
+      "color": ["Titanium Black"],
+      "region": ["REGION_UAE"],
+      "condition": ["COND_NEW"]
+    }
+  },
+  {
+    "raw_text": "Message for best price iPhone 16",
+    "expected_side": "price_discovery",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "Pre Booking iPhone 17 Pro Max",
+    "expected_side": "prebook",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "already sold iPhone 16 Pro",
+    "expected_side": "status_close",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "I need iPhone 15 Pro 128GB",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["128GB"]
+    }
+  },
+  {
+    "raw_text": "for sale: MacBook Pro M3 512GB Silver",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_LAPTOP"],
+      "storage": ["512GB"],
+      "color": ["Silver"]
+    }
+  },
+  {
+    "raw_text": "Selling Galaxy S25 256GB Blue 8GB RAM Brand New",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "ram": ["8GBRAM"],
+      "color": ["Blue"],
+      "condition": ["COND_NEW"]
+    }
+  },
+  {
+    "raw_text": "Want to buy iPad Air 11 inch 1TB space gray",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_TABLET"],
+      "storage": ["1TB"],
+      "color": ["Grey"]
+    }
+  },
+  {
+    "raw_text": "W T S AirPods Pro 2 sealed UK stock",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_EARBUDS"],
+      "region": ["REGION_UK"]
+    }
+  },
+  {
+    "raw_text": "Anyone have iPhone charger cable 20W USB",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_ACCESSORY"]
+    }
+  },
+  {
+    "raw_text": "Looking for Apple Watch Ultra 49mm Ocean Band",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTWATCH"],
+      "variants": ["VAR_WATCH_SIZE", "VAR_WATCH_BAND"]
+    }
+  },
+  {
+    "raw_text": "Samsung SSD 990 Pro 2TB for sale",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": false,
+      "reason": "non_target_brand",
+      "brand": "non_target"
+    }
+  },
+  {
+    "raw_text": "WTS Samsung SSD 990 and iPhone 16 Pro case available",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_ACCESSORY"]
+    }
+  },
+  {
+    "raw_text": "WTS Google Pixel 9 Pro 256GB obsidian Brand New",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": false,
+      "reason": "non_target_brand",
+      "brand": "non_target"
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 15 and Samsung S24 both sealed",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "mixed"
+    }
+  },
+  {
+    "raw_text": "WTS 10 pcs iPhone 16 Pro 128GB UAE TRA approved",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["128GB"],
+      "region": ["REGION_UAE"],
+      "quantity": {"QTY_EXACT": true, "qty_value": 10}
+    }
+  },
+  {
+    "raw_text": "Bulk stock available Samsung A16 4/64 Black",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "ram": ["4/64"],
+      "color": ["Black"],
+      "quantity": {"QTY_BULK": true}
+    }
+  },
+  {
+    "raw_text": "WTB iPhone 16 Pro Max 512 GB Natural Titanium",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["512GB"],
+      "color": ["Natural"]
+    }
+  },
+  {
+    "raw_text": "WTS MOQ applies 5 units Galaxy S25 UAE",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "region": ["REGION_UAE"],
+      "quantity": {"MOQ_APPLIES": true}
+    }
+  },
+  {
+    "raw_text": "deal done Samsung S26 Ultra",
+    "expected_side": "status_close",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "Looking to Buy iPhone 16 Pro USA spec LL/A",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "region": ["REGION_USA"]
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 15 Pro Max 256GB UK /B sealed Brand New",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "region": ["REGION_UK"],
+      "condition": ["COND_NEW"]
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 14 Pro 128GB Deep Blue Non Active",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["128GB"],
+      "color": ["Deep Blue"],
+      "activation": ["ACT_NON_ACTIVE"]
+    }
+  },
+  {
+    "raw_text": "WTS Samsung Galaxy S25 Ultra Titanium Jetblack 512GB Locked",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["512GB"],
+      "color": ["Titanium Jetblack"],
+      "activation": ["ACT_LOCKED"]
+    }
+  },
+  {
+    "raw_text": "WTS iPad Pro M4 256GB Silver Grade A with charger",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_TABLET", "CAT_ACCESSORY"],
+      "storage": ["256GB"],
+      "color": ["Silver"],
+      "condition": ["COND_GRADE_A"]
+    }
+  },
+  {
+    "raw_text": "Wholesale Offer iPhone 16 128GB all colors available",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["128GB"]
+    }
+  },
+  {
+    "raw_text": "WTB Samsung Galaxy Watch 8 44mm LTE",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTWATCH"]
+    }
+  },
+  {
+    "raw_text": "Selling Today iPad 10th gen 64GB Blue WiFi",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_TABLET"],
+      "storage": ["64GB"],
+      "color": ["Blue"],
+      "variants": ["VAR_WIFI"]
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 16 Pro Max 1 TB Desert Titanium EU spec €1200",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["1TB"],
+      "color": ["Desert"],
+      "region": ["REGION_EU"],
+      "currency": ["CUR_EUR"]
+    }
+  },
+  {
+    "raw_text": "Want to buy Samsung Buds4 black Brand New",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_EARBUDS"],
+      "color": ["Black"],
+      "condition": ["COND_NEW"]
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 16 Pro 256GB Black FOB NY US Spec sealed",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "color": ["Black"],
+      "region": ["REGION_USA"],
+      "logistics": ["LOC_OVERSEAS_DROPSHIP"]
+    }
+  },
+  {
+    "raw_text": "WTS OEM Simfree iPhone 15 Pro 256GB Natural Titanium",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "color": ["Natural"],
+      "activation": ["ACT_OEM", "ACT_SIMFREE"]
+    }
+  },
+  {
+    "raw_text": "WTS Samsung Tab S10+ 256GB 5G Grey",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_TABLET"],
+      "storage": ["256GB"],
+      "color": ["Grey"],
+      "variants": ["VAR_CELLULAR"]
+    }
+  },
+  {
+    "raw_text": "WTB MacBook Air M4 512GB Midnight UK spec £800",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_LAPTOP"],
+      "storage": ["512GB"],
+      "color": ["Midnight"],
+      "region": ["REGION_UK"],
+      "currency": ["CUR_GBP"]
+    }
+  },
+  {
+    "raw_text": "Hello just checking the group",
+    "expected_side": "unknown",
+    "expected_attributes": {
+      "passed": false,
+      "reason": "non_target_brand",
+      "brand": "unknown"
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 16 Pro 256GB Gold 12GB RAM",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "ram": ["12GBRAM"],
+      "color": ["Gold"]
+    }
+  },
+  {
+    "raw_text": "don't need it anymore iPhone 14 sealed",
+    "expected_side": "status_close",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "closed deal Samsung S25",
+    "expected_side": "status_close",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "Ask for best price MacBook Pro 16 inch",
+    "expected_side": "price_discovery",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_LAPTOP"]
+    }
+  },
+  {
+    "raw_text": "Ping me for best iPhone 16 Pro price",
+    "expected_side": "price_discovery",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"]
+    }
+  },
+  {
+    "raw_text": "WTS iPhone 16 Pro 256GB +971501234567",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "contact_cc": {"cc": "+971", "is_foreign": true}
+    }
+  },
+  {
+    "raw_text": "WTB Galaxy S25 contact +447911123456",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "contact_cc": {"cc": "+447", "is_foreign": false}
+    }
+  },
+  {
+    "raw_text": "",
+    "expected_side": "unknown",
+    "expected_attributes": {
+      "passed": false,
+      "reason": "non_target_brand",
+      "brand": "unknown"
+    }
+  },
+  {
+    "raw_text": "📱📱📱",
+    "expected_side": "unknown",
+    "expected_attributes": {
+      "passed": false,
+      "reason": "non_target_brand",
+      "brand": "unknown"
+    }
+  },
+  {
+    "raw_text": "Looking for iPhone 16 Pro Max any spec 256GB",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "region": ["REGION_ANY"]
+    }
+  },
+  {
+    "raw_text": "Bulk Stock Update iPhone 16 128GB 256GB Grade A Grade B Grade C available",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["128GB", "256GB"],
+      "condition": ["COND_GRADE_A", "COND_GRADE_B", "COND_GRADE_C"]
+    }
+  },
+  {
+    "raw_text": "WTS Samsung Z Flip7 256GB Lavender 12GB RAM",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "samsung",
+      "categories": ["CAT_SMARTPHONE"],
+      "storage": ["256GB"],
+      "ram": ["12GBRAM"],
+      "color": ["Lavender"]
+    }
+  },
+  {
+    "raw_text": "Looking to Buy Apple 20W USB-C charger and cable",
+    "expected_side": "buy",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_ACCESSORY"]
+    }
+  },
+  {
+    "raw_text": "Selling Open box iPad Pro M4 512GB Space Gray",
+    "expected_side": "sell",
+    "expected_attributes": {
+      "passed": true,
+      "brand": "apple",
+      "categories": ["CAT_TABLET"],
+      "storage": ["512GB"],
+      "color": ["Grey"],
+      "condition": ["COND_OPEN_BOX"]
+    }
+  }
+]

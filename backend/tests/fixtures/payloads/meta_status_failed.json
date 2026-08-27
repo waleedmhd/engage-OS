@@ -1,0 +1,35 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "16505551111",
+              "phone_number_id": "1234567890"
+            },
+            "statuses": [
+              {
+                "id": "wamid.outbound.0002",
+                "recipient_id": "16175551234",
+                "status": "failed",
+                "timestamp": "1700000030",
+                "errors": [
+                  {
+                    "code": 131053,
+                    "title": "Message failed to send because of an unknown error",
+                    "error_data": {"details": "Recipient cannot receive messages"}
+                  }
+                ]
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

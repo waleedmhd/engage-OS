@@ -1,0 +1,8 @@
+{
+  "reply": "",
+  "confidence": 0.40,
+  "intent": "complaint",
+  "suggested_tags": ["complaint"],
+  "requires_approval": false,
+  "escalate": true
+}

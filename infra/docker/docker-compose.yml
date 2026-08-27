@@ -1,0 +1,175 @@
+name: engageos
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-engageos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-engageos}
+      POSTGRES_DB: ${POSTGRES_DB:-engageos}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-engageos} -d ${POSTGRES_DB:-engageos}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/media
+    environment:
+      ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-console}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-engageos}:${POSTGRES_PASSWORD:-engageos}@postgres:5432/${POSTGRES_DB:-engageos}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-min-32-characters}
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      META_ACCESS_TOKEN: ${META_ACCESS_TOKEN:-}
+      META_PHONE_NUMBER_ID: ${META_PHONE_NUMBER_ID:-}
+      META_VERIFY_TOKEN: ${META_VERIFY_TOKEN:-dev-verify-token}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    command: ["bash", "scripts/start-api.sh"]
+
+  worker:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/media
+    environment:
+      ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-engageos}:${POSTGRES_PASSWORD:-engageos}@postgres:5432/${POSTGRES_DB:-engageos}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-min-32-characters}
+    command:
+      - "celery"
+      - "-A"
+      - "app.celery_app.celery_app"
+      - "worker"
+      - "-l"
+      - "INFO"
+      - "-Q"
+      - "default,outbound,ai,analytics"
+      - "--concurrency=2"
+
+  scheduler:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-engageos}:${POSTGRES_PASSWORD:-engageos}@postgres:5432/${POSTGRES_DB:-engageos}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-min-32-characters}
+    command: ["bash", "scripts/start-scheduler.sh"]
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* vars must be passed at BUILD time so Next.js can inline
+        # them into the client bundle. Setting them only in `environment` (runtime)
+        # has no effect on the compiled JS.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000/ws}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      ENV: development
+      BACKEND_URL: http://api:8000
+    ports:
+      - "3000:3000"
+
+  wa-listener:
+    build:
+      context: ../../listener
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      listener-db:
+        condition: service_healthy
+      api:
+        condition: service_started
+    volumes:
+      - baileys_auth:/app/.baileys_auth
+    environment:
+      DATABASE_URL: postgresql://${LISTENER_DB_USER:-listener}:${LISTENER_DB_PASSWORD:-listener}@listener-db:5432/${LISTENER_DB_NAME:-wa_listener}
+      ARCHIVE_DATABASE_URL: ${ARCHIVE_DATABASE_URL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      CRM_API_URL: http://api:8000/api/v1
+      CRM_USER_EMAIL: ${LISTENER_CRM_EMAIL:-}
+      CRM_USER_PASSWORD: ${LISTENER_CRM_PASSWORD:-}
+      MONITORED_GROUPS: ${MONITORED_GROUPS:-}
+      HEALTH_PORT: "3001"
+      FILTER_INTERVAL_MINUTES: ${FILTER_INTERVAL_MINUTES:-5}
+      DATA_RETENTION_HOURS: ${DATA_RETENTION_HOURS:-24}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "3001:3001"
+
+  listener-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${LISTENER_DB_USER:-listener}
+      POSTGRES_PASSWORD: ${LISTENER_DB_PASSWORD:-listener}
+      POSTGRES_DB: ${LISTENER_DB_NAME:-wa_listener}
+    volumes:
+      - listener_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LISTENER_DB_USER:-listener} -d ${LISTENER_DB_NAME:-wa_listener}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  media_data:
+  baileys_auth:
+  listener_db_data:

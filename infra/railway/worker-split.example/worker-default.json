@@ -1,0 +1,23 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-worker-default",
+  "_rootDirectory": "backend",
+  "_purpose": "Catch-all worker: assignment lock sweep, analytics rollups. CPU-light and bursty.",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "backend/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash ../infra/scripts/start-worker.sh",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_extraEnv": {
+    "CELERY_QUEUES": "default,analytics",
+    "CELERY_CONCURRENCY": "2"
+  },
+  "_requiredEnv": [
+    "ENV", "LOG_LEVEL", "LOG_FORMAT", "DATABASE_URL", "REDIS_URL",
+    "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND"
+  ]
+}

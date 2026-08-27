@@ -1,0 +1,8 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_note": "EngageOS is one repo deployed as four custom Railway services (api, worker, scheduler, frontend) plus managed Postgres and Redis. Railway reads the railway.json at each service's Root Directory: backend/railway.json (api/worker/scheduler) and frontend/railway.json carry the actual build/deploy config. worker and scheduler share backend/railway.json, which intentionally sets NO startCommand/healthcheck (config-as-code overrides the dashboard, so a startCommand there would force every service to run the API). api uses the Dockerfile CMD default (start-api.sh) + a dashboard healthcheck; worker/scheduler use per-service Custom Start Commands. This ROOT file is NOT used for builds (no Dockerfile at repo root) and only documents the shared restart policy. Env vars + scaling: infra/railway/*.json. Setup runbook: docs/railway-deployment.md."
+}

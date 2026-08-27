@@ -1,0 +1,33 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-api",
+  "_rootDirectory": "backend",
+  "_configFilePath": "backend/railway.json",
+  "_note": "backend/railway.json is SHARED by api/worker/scheduler and therefore carries NO startCommand/healthcheck (config-as-code would override every service's dashboard). The api's startCommand comes from the Dockerfile CMD default (bash scripts/start-api.sh); the api's healthcheckPath=/health MUST be set in the api service's dashboard (Settings -> Deploy). The deploy block below documents the api's effective config but is NOT a file Railway reads.",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash scripts/start-api.sh",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_requiredEnv": [
+    "ENV",
+    "LOG_LEVEL",
+    "LOG_FORMAT",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "JWT_SECRET",
+    "META_APP_SECRET",
+    "META_ACCESS_TOKEN",
+    "META_PHONE_NUMBER_ID",
+    "META_VERIFY_TOKEN",
+    "ANTHROPIC_API_KEY",
+    "CORS_ORIGINS",
+    "FRONTEND_URL"
+  ]
+}

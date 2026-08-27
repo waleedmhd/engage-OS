@@ -1,0 +1,8 @@
+{
+  "reply": "I can offer you a 10% discount this week. Would you like to schedule a call?",
+  "confidence": 0.72,
+  "intent": "discount_offer",
+  "suggested_tags": [],
+  "requires_approval": true,
+  "escalate": false
+}

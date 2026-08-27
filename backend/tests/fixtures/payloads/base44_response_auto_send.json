@@ -1,0 +1,8 @@
+{
+  "reply": "Hi Alice! Happy to help — what kind of property are you looking for?",
+  "confidence": 0.92,
+  "intent": "greeting",
+  "suggested_tags": ["buyer-lead"],
+  "requires_approval": false,
+  "escalate": false
+}

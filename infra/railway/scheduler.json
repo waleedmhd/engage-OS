@@ -1,0 +1,26 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-scheduler",
+  "_rootDirectory": "backend",
+  "_startCommandOverride": "Set this as the service's Custom Start Command in Railway (Settings -> Deploy). The shared backend/railway.json intentionally sets NO startCommand (config-as-code would otherwise override this dashboard value and force the scheduler to run the API).",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash scripts/start-scheduler.sh",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_liveness": "Celery beat is not an HTTP service; Railway healthchecks do not apply. Relies on the ON_FAILURE restart policy.",
+  "_scaling": "MUST run exactly ONE replica. Multiple celery-beat instances duplicate every scheduled firing (campaigns scheduler_tick, assignments expire_stale_locks, analytics aggregate_daily_metrics). Do not enable horizontal scaling on this service.",
+  "_requiredEnv": [
+    "ENV",
+    "LOG_LEVEL",
+    "LOG_FORMAT",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "CELERY_BROKER_URL",
+    "CELERY_RESULT_BACKEND"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-worker",
+  "_rootDirectory": "backend",
+  "_startCommandOverride": "Set this as the service's Custom Start Command in Railway (Settings -> Deploy). All three backend services share backend/railway.json, which intentionally sets NO startCommand (config-as-code overrides the dashboard — a startCommand there would force this service to run the API). The override below only takes effect because the shared file is silent on startCommand.",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash scripts/start-worker.sh",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_liveness": "Celery worker is not an HTTP service, so Railway healthchecks do not apply. Liveness relies on the ON_FAILURE restart policy plus task_acks_late/task_reject_on_worker_lost (app/celery_app.py) so in-flight tasks are redelivered on crash. Manual check: `celery -A app.celery_app.celery_app inspect ping`.",
+  "_scaling": "Horizontally scalable. CELERY_QUEUES / CELERY_CONCURRENCY env vars override the queue set and concurrency. See infra/railway/SCALING.md and infra/railway/worker-split.example/ for splitting ai/outbound into dedicated services.",
+  "_requiredEnv": [
+    "ENV",
+    "LOG_LEVEL",
+    "LOG_FORMAT",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "CELERY_BROKER_URL",
+    "CELERY_RESULT_BACKEND",
+    "META_APP_SECRET",
+    "META_ACCESS_TOKEN",
+    "META_PHONE_NUMBER_ID",
+    "ANTHROPIC_API_KEY"
+  ]
+}

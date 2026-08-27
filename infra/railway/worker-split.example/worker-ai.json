@@ -1,0 +1,24 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_serviceName": "engageos-worker-ai",
+  "_rootDirectory": "backend",
+  "_purpose": "Dedicated worker for the Claude AI cascade queue. Latency-bound; per-conversation Redis NX lock (180s TTL) caps real concurrency, so scale replicas rather than CELERY_CONCURRENCY.",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "backend/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bash ../infra/scripts/start-worker.sh",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "_extraEnv": {
+    "CELERY_QUEUES": "ai",
+    "CELERY_CONCURRENCY": "4"
+  },
+  "_requiredEnv": [
+    "ENV", "LOG_LEVEL", "LOG_FORMAT", "DATABASE_URL", "REDIS_URL",
+    "CELERY_BROKER_URL", "CELERY_RESULT_BACKEND",
+    "ANTHROPIC_API_KEY"
+  ]
+}

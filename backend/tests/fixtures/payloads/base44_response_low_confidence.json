@@ -1,0 +1,8 @@
+{
+  "reply": "Could you tell me a bit more about what you're looking for?",
+  "confidence": 0.31,
+  "intent": "unclear",
+  "suggested_tags": [],
+  "requires_approval": false,
+  "escalate": false
+}

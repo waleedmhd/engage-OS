@@ -1,0 +1,7 @@
+# Enforce LF for files executed inside Linux containers. CRLF here causes
+# "bad interpreter: /usr/bin/env bash^M" / SyntaxError on Railway.
+*.sh    text eol=lf
+*.py    text eol=lf
+Dockerfile text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf

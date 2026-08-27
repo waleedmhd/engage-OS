@@ -1,0 +1,5 @@
+{
+  "error": "timeout",
+  "message": "Upstream model did not respond within deadline.",
+  "latency_ms": 10000
+}

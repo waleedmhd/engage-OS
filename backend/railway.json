@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "_note": "SHARED by three Railway services (api, worker, scheduler) — all have Root Directory = backend, so all read THIS file. Railway config-as-code OVERRIDES dashboard settings, so this file must contain ONLY what is common to all three (build + restart policy). It must NOT set startCommand or healthcheck*: doing so forces worker/scheduler to run the API (and applies an HTTP healthcheck to non-HTTP services), defeating their per-service Custom Start Command overrides. Per-service start commands: api -> Dockerfile CMD default (scripts/start-api.sh); worker/scheduler -> Custom Start Command in the Railway dashboard (scripts/start-worker.sh / start-scheduler.sh). api's /health healthcheck is set in the api service's dashboard, NOT here. See infra/railway/*.json.",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}

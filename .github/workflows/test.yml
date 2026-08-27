@@ -1,0 +1,177 @@
+name: Backend tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -U pip
+          pip install -e .[dev]
+      - name: Run unit tier
+        working-directory: backend
+        env:
+          ENV: test
+          JWT_SECRET: test-secret-min-32-characters-aaaaaaaa
+          META_APP_SECRET: test-meta-app-secret
+          META_VERIFY_TOKEN: test-verify-token
+          META_ACCESS_TOKEN: test-access-token
+          META_PHONE_NUMBER_ID: "1234567890"
+          BASE44_API_KEY: test-base44-key
+          BASE44_ENDPOINT: https://base44.test/agent
+        run: pytest -m "not integration and not e2e and not live" --maxfail=5
+
+  integration-and-e2e:
+    name: Integration + E2E tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: engageos
+          POSTGRES_PASSWORD: engageos
+          POSTGRES_DB: engageos_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U engageos -d engageos_test"
+          --health-interval 1s
+          --health-timeout 3s
+          --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 56379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 1s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -U pip
+          pip install -e .[dev]
+      - name: Run integration + E2E tiers
+        working-directory: backend
+        env:
+          ENV: test
+          DATABASE_URL: postgresql+asyncpg://engageos:engageos@localhost:55432/engageos_test
+          REDIS_URL: redis://localhost:56379/0
+          CELERY_BROKER_URL: redis://localhost:56379/0
+          CELERY_RESULT_BACKEND: redis://localhost:56379/0
+          JWT_SECRET: test-secret-min-32-characters-aaaaaaaa
+          META_APP_SECRET: test-meta-app-secret
+          META_VERIFY_TOKEN: test-verify-token
+          META_ACCESS_TOKEN: test-access-token
+          META_PHONE_NUMBER_ID: "1234567890"
+          BASE44_API_KEY: test-base44-key
+          BASE44_ENDPOINT: https://base44.test/agent
+        run:  |
+          alembic upgrade head
+          pytest -m "integration or e2e" --maxfail=5
+
+  coverage:
+    name: Coverage gate
+    needs: [unit, integration-and-e2e]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: engageos
+          POSTGRES_PASSWORD: engageos
+          POSTGRES_DB: engageos_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U engageos -d engageos_test"
+          --health-interval 1s
+          --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 56379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 1s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -U pip
+          pip install -e .[dev]
+      - name: Run database migrations
+        working-directory: backend
+        env:
+          ENV: test
+          DATABASE_URL: postgresql+asyncpg://engageos:engageos@localhost:55432/engageos_test
+        run: alembic upgrade head
+      - name: Coverage
+        working-directory: backend
+        env:
+          ENV: test
+          DATABASE_URL: postgresql+asyncpg://engageos:engageos@localhost:55432/engageos_test
+          DATABASE_URL_SYNC: postgresql+psycopg://engageos:engageos@localhost:55432/engageos_test
+          REDIS_URL: redis://localhost:56379/0
+          JWT_SECRET: test-secret-min-32-characters-aaaaaaaa
+          META_APP_SECRET: test-meta-app-secret
+          META_VERIFY_TOKEN: test-verify-token
+          META_ACCESS_TOKEN: test-access-token
+          META_PHONE_NUMBER_ID: "1234567890"
+          BASE44_API_KEY: test-base44-key
+          BASE44_ENDPOINT: https://base44.test/agent
+        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=85 -m "not live"
+
+  live:
+    name: Live API smoke (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install -U pip
+          pip install -e .[dev]
+      - name: Run live tier
+        working-directory: backend
+        env:
+          ENV: test
+          RUN_LIVE_TESTS: "1"
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_PHONE_NUMBER_ID: ${{ secrets.META_PHONE_NUMBER_ID }}
+          META_TEST_RECIPIENT: ${{ secrets.META_TEST_RECIPIENT }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          BASE44_API_KEY: ${{ secrets.BASE44_API_KEY }}
+          BASE44_ENDPOINT: ${{ secrets.BASE44_ENDPOINT }}
+          JWT_SECRET: test-secret-min-32-characters-aaaaaaaa
+        run: pytest -m live -v
