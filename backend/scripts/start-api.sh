@@ -8,6 +8,7 @@ PORT="${PORT:-8000}"
 LOG_LEVEL="${LOG_LEVEL:-info}"
 
 alembic upgrade head
+python -m scripts.seed_admin
 exec uvicorn app.main:app \
   --host 0.0.0.0 \
   --port "$PORT" \
