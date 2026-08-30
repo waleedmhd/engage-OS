@@ -5,6 +5,11 @@ SEED_ADMIN_PASSWORD are set, so it's safe to leave wired into
 start-api.sh permanently. Existing users are left untouched (ON
 CONFLICT DO NOTHING) — this only ever creates the first admin.
 
+SEED_ADMIN_DELETE_EMAIL, if set, deletes that user first — a one-off
+escape hatch for correcting a bad SEED_ADMIN_EMAIL from a prior run
+(e.g. a value rejected by login's EmailStr validation) without needing
+DB shell access.
+
 Usage (from backend/):
   python -m scripts.seed_admin
 
@@ -26,12 +31,21 @@ def main() -> int:
     email = os.environ.get("SEED_ADMIN_EMAIL", "").strip()
     password = os.environ.get("SEED_ADMIN_PASSWORD", "")
     name = os.environ.get("SEED_ADMIN_NAME", "Admin").strip()
+    delete_email = os.environ.get("SEED_ADMIN_DELETE_EMAIL", "").strip()
 
     if not email or not password:
         return 0
 
     hashed = hash_password(password)
     with sync_session_factory() as session:
+        if delete_email:
+            deleted = session.execute(
+                text("DELETE FROM users WHERE email = :email"),
+                {"email": delete_email},
+            )
+            session.commit()
+            if deleted.rowcount:
+                print(f"seed_admin: deleted user email={delete_email}")
         result = session.execute(
             text(
                 "INSERT INTO users (email, name, hashed_password, role, is_active) "
