@@ -17,7 +17,7 @@ export function Brand({ variant = 'short', size = 32, className }: BrandProps) {
           `sharp` at runtime — avoiding it keeps the logo robust on Railway. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/engageos-logo.svg"
+        src="/engageos-logo.png"
         alt="EngageOS logo"
         width={size}
         height={size}

@@ -33,6 +33,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Exclude Next.js internals, API routes, and any public static assets
   // (images, fonts, etc.) so unauthenticated requests for files like
-  // /engageos-logo.svg are served directly rather than redirected to /login.
+  // /engageos-logo.png are served directly rather than redirected to /login.
   matcher: ['/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf)).*)'],
 };

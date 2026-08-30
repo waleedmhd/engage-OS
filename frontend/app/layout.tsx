@@ -4,7 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'EngageOS',
   description: 'WhatsApp CRM powered by EngageOS',
-  icons: { icon: '/engageos-logo.svg' },
+  icons: { icon: '/engageos-logo.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
