@@ -146,8 +146,14 @@ class PostingService:
             user_remark=request.user_remark,
         )
 
+        # Add the lines to the session directly rather than appending to
+        # ``entry.lines``. The repository's create() flushes and refreshes, so
+        # ``entry`` is persistent and its ``lines`` collection is an unloaded
+        # lazy relationship — appending to it emits a SELECT, which raises
+        # MissingGreenlet under an AsyncSession. entry_id is already set here,
+        # so the relationship is not needed to establish the FK.
         for line_req in request.lines:
-            entry.lines.append(
+            self._session.add(
                 JournalLine(
                     entry_id=entry.id,
                     account_id=line_req.account_id,

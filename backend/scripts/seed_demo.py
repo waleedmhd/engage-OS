@@ -615,7 +615,9 @@ async def phase_procurement(
         BillCreateRequest, BillLineRequest, PaymentAllocationRequest,
         PaymentCreateRequest,
     )
-    from app.modules.payables.service import BillService, SupplierPaymentService
+    # Both the AR and AP modules export a class named PaymentService.
+    from app.modules.payables.service import BillService
+    from app.modules.payables.service import PaymentService as SupplierPaymentService
     from app.demo.dataset import AP_AGEING_PLAN, ITEM_SPECS, did
 
     today = run_at.date()
