@@ -948,69 +948,6 @@ async def phase_opex(
     rep.add("opex journals", f"{posted} posted")
 
 
-async def phase_close_pl(
-    session: AsyncSession, rep: Report, accounts: dict, run_at: datetime
-) -> None:
-    """Close every P&L account into 3300 Current Year Earnings.
-
-    erp_reporting.balance_sheet() sums only asset/liability/equity accounts and
-    never derives retained earnings from the P&L, so without this entry the
-    balance sheet is out by exactly the net profit. Closing each revenue/COGS/
-    OPEX account individually (rather than netting them into one) leaves every
-    P&L account at zero, which is what makes A = L + E hold.
-    """
-    from app.modules.ledger.posting import PostingService
-    from app.modules.ledger.schemas import JournalEntryCreateRequest
-
-    rows = (await session.execute(text("""
-        SELECT a.code,
-               COALESCE(SUM(jl.dr_base), 0) - COALESCE(SUM(jl.cr_base), 0) AS net_dr
-        FROM journal_lines jl
-        JOIN accounts a ON a.id = jl.account_id
-        JOIN journal_entries je ON je.id = jl.entry_id
-        WHERE je.status = 'posted' AND a.type IN ('revenue', 'cogs', 'opex')
-        GROUP BY a.code
-        HAVING COALESCE(SUM(jl.dr_base), 0) - COALESCE(SUM(jl.cr_base), 0) <> 0
-    """))).mappings().all()
-    if not rows:
-        rep.add("close P&L", "nothing to close")
-        return
-
-    lines = []
-    net_dr = Decimal("0")
-    for row in rows:
-        bal = Decimal(str(row["net_dr"]))
-        net_dr += bal
-        # Reverse each account's balance: credit a debit balance, debit a credit one.
-        lines.append(
-            _jline(accounts[row["code"]], f"Close {row['code']}", cr=bal) if bal > 0
-            else _jline(accounts[row["code"]], f"Close {row['code']}", dr=-bal)
-        )
-
-    # Revenue carries a credit balance, so a profit means net_dr < 0.
-    profit = -net_dr
-    lines.append(
-        _jline(accounts["3300"], "Current year earnings", cr=profit) if profit > 0
-        else _jline(accounts["3300"], "Current year loss", dr=-profit)
-    )
-    try:
-        await PostingService(session).post(
-            JournalEntryCreateRequest(
-                posting_date=run_at.date(),
-                description="Period close - transfer P&L to current year earnings",
-                voucher_type="journal_entry", lines=lines,
-            ),
-            actor_id=None, is_system_generated=True,
-            source_type="demo_period_close",
-            source_id=uuid.uuid5(uuid.NAMESPACE_DNS, "demo-close"),
-        )
-        await session.commit()
-        rep.add("close P&L", f"{len(rows)} accounts closed, net profit {profit} -> 3300")
-    except Exception as exc:  # noqa: BLE001
-        await session.rollback()
-        rep.add("close P&L", f"skipped: {type(exc).__name__}: {exc}")
-
-
 async def phase_audit_settings(
     session: AsyncSession, rep: Report, agents: list[uuid.UUID], run_at: datetime
 ) -> None:
@@ -1129,21 +1066,44 @@ def verify(rep: Report) -> None:
         else:
             rep.add("check trial balance", "balanced")
 
+        # Mirrors erp_reporting.balance_sheet(): every net is (dr - cr), and
+        # current-year earnings are derived from the P&L accounts rather than
+        # requiring a closing entry.
         bs = s.execute(text("""
             SELECT a.type, COALESCE(sum(jl.dr_base) - sum(jl.cr_base), 0) AS net
             FROM journal_lines jl
             JOIN accounts a ON a.id = jl.account_id
             JOIN journal_entries je ON je.id = jl.entry_id
-            WHERE je.status = 'posted' AND a.type IN ('asset', 'liability', 'equity')
+            WHERE je.status = 'posted'
             GROUP BY a.type""")).mappings().all()
         amounts = {r["type"]: Decimal(str(r["net"])) for r in bs}
-        assets = amounts.get("asset", Decimal("0"))
-        le = -(amounts.get("liability", Decimal("0")) + amounts.get("equity", Decimal("0")))
+
+        def net(kind: str) -> Decimal:
+            return amounts.get(kind, Decimal("0"))
+
+        assets = net("asset")
+        earnings = -net("revenue") - net("cogs") - net("opex")
+        le = -net("liability") - net("equity") + earnings
         if assets == le:
-            rep.add("check balance sheet", f"A = L+E = {assets}")
+            rep.add("check balance sheet", f"A = L+E = {assets} (earnings {earnings})")
         else:
             rep.add("check balance sheet",
                     f"A={assets} vs L+E={le} (out by {assets - le})")
+
+        pl = s.execute(text("""
+            SELECT a.type, COALESCE(sum(jl.cr_base) - sum(jl.dr_base), 0) AS net
+            FROM journal_lines jl
+            JOIN accounts a ON a.id = jl.account_id
+            JOIN journal_entries je ON je.id = jl.entry_id
+            WHERE je.status = 'posted' AND a.type IN ('revenue', 'cogs', 'opex')
+            GROUP BY a.type""")).mappings().all()
+        p = {r["type"]: Decimal(str(r["net"])) for r in pl}
+        rev, cogs, opex = p.get("revenue", Decimal("0")), -p.get("cogs", Decimal("0")), -p.get("opex", Decimal("0"))
+        if rev > 0 and cogs > 0:
+            rep.add("check P&L", f"revenue {rev}, COGS {cogs}, opex {opex}, "
+                                 f"net {rev - cogs - opex}")
+        else:
+            rep.fail("check P&L", f"revenue {rev}, COGS {cogs} (both must be > 0)")
 
         for label, sql in [
             ("daily rollups", "SELECT count(*) FROM analytics_daily_metrics"),
@@ -1247,7 +1207,10 @@ async def seed_async(rep: Report, run_at: datetime) -> None:
             await phase_fulfilment(session, rep, specs, agents, received, run_at)
             await phase_receivables(session, rep, specs, accounts, agents, run_at)
             await phase_opex(session, rep, accounts, agents[0], run_at)
-            await phase_close_pl(session, rep, accounts, run_at)
+            # Deliberately no period-closing entry: erp_reporting derives
+            # current-year earnings from the P&L accounts, so the balance sheet
+            # ties without one, and closing mid-year would zero the revenue,
+            # COGS and OPEX accounts that the P&L report reads.
 
         await phase_audit_settings(session, rep, agents, run_at)
 

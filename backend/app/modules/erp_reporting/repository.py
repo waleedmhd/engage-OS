@@ -114,6 +114,13 @@ class ReportRepository:
 
         Returns dict with:
             assets, liabilities, equity, retained_earnings
+
+        Both the balance-sheet accounts and the P&L accounts are summed. The
+        P&L net is reported as ``retained_earnings`` and added to equity: until
+        a year-end closing entry moves them, profit sits in the revenue/COGS/
+        OPEX accounts, and omitting it left the sheet out of balance by exactly
+        the net profit. Deriving it here is what makes a mid-year balance sheet
+        tie without requiring a closing entry first.
         """
         stmt = sa.text("""
             SELECT
@@ -124,25 +131,35 @@ class ReportRepository:
             JOIN journal_entries je ON je.id = jl.entry_id
             WHERE je.posting_date <= :as_of_date
                 AND je.status = 'posted'
-                AND a.type IN ('asset', 'liability', 'equity')
             GROUP BY a.type
         """)
         result = await self._session.execute(stmt, {"as_of_date": as_of_date})
         rows = result.mappings().all()
 
-        amounts: dict[str, Decimal] = {"asset": money_zero(), "liability": money_zero(), "equity": money_zero()}
+        amounts: dict[str, Decimal] = {
+            "asset": money_zero(), "liability": money_zero(), "equity": money_zero(),
+            "revenue": money_zero(), "cogs": money_zero(), "opex": money_zero(),
+        }
         for row in rows:
             amounts[row["account_type"]] = Decimal(str(row["net_amount"]))
 
+        # Every net above is (debits - credits). Assets are debit-normal and so
+        # are already positive; liabilities and equity are credit-normal and
+        # come back negative, so both must be flipped — previously only
+        # liabilities were, which left equity negative and the total wrong.
         assets = amounts["asset"]
-        liabilities = abs(amounts["liability"])
-        equity = amounts["equity"]
+        liabilities = -amounts["liability"]
+        equity = -amounts["equity"]
+
+        # Revenue is credit-normal, COGS and OPEX debit-normal.
+        retained_earnings = -amounts["revenue"] - amounts["cogs"] - amounts["opex"]
 
         return {
             "assets": assets,
             "liabilities": liabilities,
-            "equity": equity,
-            "total_liabilities_and_equity": liabilities + equity,
+            "equity": equity + retained_earnings,
+            "retained_earnings": retained_earnings,
+            "total_liabilities_and_equity": liabilities + equity + retained_earnings,
         }
 
     # --------------------------------------------------------------- gross margin

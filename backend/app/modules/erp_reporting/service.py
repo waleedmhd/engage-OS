@@ -55,6 +55,7 @@ class ReportService:
             assets=data["assets"],
             liabilities=data["liabilities"],
             equity=data["equity"],
+            retained_earnings=data["retained_earnings"],
             total_liabilities_and_equity=data["total_liabilities_and_equity"],
         )
 

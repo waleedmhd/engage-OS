@@ -326,29 +326,35 @@ export default function ReportsPage() {
           ) : bsData ? (
             <div className="space-y-4">
               {/* Summary cards */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="rounded-lg border p-4">
                   <p className="text-xs text-muted-foreground">Total Assets</p>
                   <p className="text-lg font-semibold">
-                    AED {Number(bsData.total_assets).toFixed(2)}
+                    AED {Number(bsData.assets).toFixed(2)}
                   </p>
                 </div>
                 <div className="rounded-lg border p-4">
                   <p className="text-xs text-muted-foreground">Total Liabilities</p>
                   <p className="text-lg font-semibold">
-                    AED {Number(bsData.total_liabilities).toFixed(2)}
+                    AED {Number(bsData.liabilities).toFixed(2)}
                   </p>
                 </div>
                 <div className="rounded-lg border p-4">
                   <p className="text-xs text-muted-foreground">Total Equity</p>
                   <p className="text-lg font-semibold">
-                    AED {Number(bsData.total_equity).toFixed(2)}
+                    AED {Number(bsData.equity).toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <p className="text-xs text-muted-foreground">Retained Earnings</p>
+                  <p className="text-lg font-semibold">
+                    AED {Number(bsData.retained_earnings).toFixed(2)}
                   </p>
                 </div>
               </div>
 
-              {/* Section breakdowns */}
-              {bsData.sections.map((section, si) => (
+              {/* Section breakdowns — optional, the API may omit them */}
+              {(bsData.sections ?? []).map((section, si) => (
                 <div key={si} className="rounded-lg border bg-white p-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold">{section.label}</h3>
@@ -387,10 +393,10 @@ export default function ReportsPage() {
                   Assets = Liabilities + Equity
                 </p>
                 <p className="mt-1 font-mono">
-                  {Number(bsData.total_assets).toFixed(2)} ={' '}
-                  {Number(bsData.total_liabilities).toFixed(2)} +{' '}
-                  {Number(bsData.total_equity).toFixed(2)} ={' '}
-                  {(Number(bsData.total_liabilities) + Number(bsData.total_equity)).toFixed(2)}
+                  {Number(bsData.assets).toFixed(2)} ={' '}
+                  {Number(bsData.liabilities).toFixed(2)} +{' '}
+                  {Number(bsData.equity).toFixed(2)} ={' '}
+                  {Number(bsData.total_liabilities_and_equity).toFixed(2)}
                 </p>
               </div>
             </div>

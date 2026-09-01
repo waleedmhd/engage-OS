@@ -44,7 +44,9 @@ class BalanceSheetResponse(BaseModel):
     as_of_date: date
     assets: Decimal
     liabilities: Decimal
+    # Includes retained_earnings, which is broken out separately below.
     equity: Decimal
+    retained_earnings: Decimal
     total_liabilities_and_equity: Decimal
 
 

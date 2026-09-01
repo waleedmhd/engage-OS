@@ -1571,12 +1571,17 @@ export type PLReportResponse = {
   accounts: { code: string; name: string; balance: number }[];
 };
 
+// Mirrors backend BalanceSheetResponse. `equity` already includes
+// `retained_earnings`, which the API derives from the P&L accounts so the
+// sheet ties without a year-end closing entry.
 export type BalanceSheetResponse = {
   as_of_date: string;
-  total_assets: number;
-  total_liabilities: number;
-  total_equity: number;
-  sections: { label: string; accounts: { code: string; name: string; balance: number }[]; total: number }[];
+  assets: number;
+  liabilities: number;
+  equity: number;
+  retained_earnings: number;
+  total_liabilities_and_equity: number;
+  sections?: { label: string; accounts: { code: string; name: string; balance: number }[]; total: number }[];
 };
 
 export type MarginResponse = {
