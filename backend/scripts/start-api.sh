@@ -9,6 +9,9 @@ LOG_LEVEL="${LOG_LEVEL:-info}"
 
 alembic upgrade head
 python -m scripts.seed_admin
+# No-ops unless SEED_DEMO=1. Idempotent (uuid5 ids + ON CONFLICT DO NOTHING),
+# so it is safe to leave wired in permanently, like seed_admin above.
+python -m scripts.seed_demo
 exec uvicorn app.main:app \
   --host 0.0.0.0 \
   --port "$PORT" \
