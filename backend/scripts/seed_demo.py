@@ -625,6 +625,7 @@ async def phase_procurement(
     actor = agents[0]
     received: dict[int, int] = {}
     grns = bills = payments = 0
+    bill_error = False
 
     for i, (_bucket, overdue, amount) in enumerate(AP_AGEING_PLAN):
         sup = suppliers[i % len(suppliers)]
@@ -675,8 +676,12 @@ async def phase_procurement(
             bills += 1
         except Exception as exc:  # noqa: BLE001
             await session.rollback()
-            rep.fail("payables", f"{type(exc).__name__}: {exc}")
-            return received
+            # Report once, then keep going: the GRNs above already stocked the
+            # warehouse, and aborting here would starve the dispatch phase.
+            if not bill_error:
+                bill_error = True
+                rep.fail("payables", f"{type(exc).__name__}: {exc}")
+            continue
 
         # Part-pay every third bill: it stays ISSUED and keeps its ageing
         # bucket, while AP and Bank both show real movement.
@@ -865,13 +870,16 @@ async def phase_receivables(
                 payment_date=due - timedelta(days=2), amount=total,
                 payment_method="bank_transfer", reference=f"AR-TT-{i:04d}",
             ))
+            # allocate() marks the invoice PAID and, once allocations cover the
+            # payment, the payment CLEARED. reconcile() is deliberately not
+            # called: it rejects an already-cleared payment, and it only emits
+            # finance.payment_reconciled, which no bridge handler subscribes
+            # to, so it would post nothing anyway.
             await svc.allocate(
                 pay.id, [PaymentAllocationRequest(invoice_id=inv.id, amount=total)]
             )
-            await svc.reconcile(pay.id, actor)
-            # AR reconcile() only emits finance.payment_reconciled, which no
-            # bridge handler subscribes to, so the relief journal is posted
-            # here. 1100 is a control account: is_system_generated=True.
+            # The AR relief journal has no subscriber, so post it here.
+            # 1100 is a control account: is_system_generated=True.
             await PostingService(session).post(
                 JournalEntryCreateRequest(
                     posting_date=due - timedelta(days=2),
