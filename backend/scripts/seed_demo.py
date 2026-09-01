@@ -110,6 +110,14 @@ async def _account_ids(session: AsyncSession) -> dict[str, uuid.UUID]:
     return {code: aid for code, aid in rows}
 
 
+async def _erp_seeded(session: AsyncSession) -> bool:
+    """True once the demo ERP document set has been built."""
+    row = await session.execute(
+        text("SELECT 1 FROM journal_entries WHERE source_type = 'demo_opening' LIMIT 1")
+    )
+    return row.first() is not None
+
+
 async def _upsert(session: AsyncSession, model, values: dict) -> None:
     """Insert, ignoring a conflict on ANY unique constraint.
 
@@ -1219,13 +1227,24 @@ async def seed_async(rep: Report, run_at: datetime) -> None:
         await phase_campaigns(session, rep, specs, agents, run_at)
         await phase_market(session, rep, specs, agents, run_at)
         await phase_inventory(session, rep, accounts)
-        await phase_opening(session, rep, accounts, agents[0], run_at)
-        received = await phase_procurement(session, rep, specs, agents, run_at)
-        await phase_serialized(session, rep, agents, run_at)
-        await phase_fulfilment(session, rep, specs, agents, received, run_at)
-        await phase_receivables(session, rep, specs, accounts, agents, run_at)
-        await phase_opex(session, rep, accounts, agents[0], run_at)
-        await phase_close_pl(session, rep, accounts, run_at)
+
+        # The ERP phases go through the service layer, which mints its own
+        # document ids, so uuid5 cannot make them idempotent the way the CRM
+        # rows are — a second run would create a second full set of orders,
+        # bills and invoices. The opening entry is posted first and carries a
+        # fixed source_id, so its presence marks the ERP set as already built.
+        # Use SEED_DEMO_MODE=wipe to rebuild after a partially failed run.
+        if await _erp_seeded(session):
+            rep.add("ERP cycle", "already seeded, skipped (wipe to rebuild)")
+        else:
+            await phase_opening(session, rep, accounts, agents[0], run_at)
+            received = await phase_procurement(session, rep, specs, agents, run_at)
+            await phase_serialized(session, rep, agents, run_at)
+            await phase_fulfilment(session, rep, specs, agents, received, run_at)
+            await phase_receivables(session, rep, specs, accounts, agents, run_at)
+            await phase_opex(session, rep, accounts, agents[0], run_at)
+            await phase_close_pl(session, rep, accounts, run_at)
+
         await phase_audit_settings(session, rep, agents, run_at)
 
 
