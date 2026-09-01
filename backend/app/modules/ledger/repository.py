@@ -118,13 +118,26 @@ class JournalLineRepository(BaseRepository[JournalLine]):
         from_date: date | None = None,
         to_date: date | None = None,
     ) -> tuple[Decimal, Decimal]:
-        """Return (total_dr, total_cr) for *account_id* in the given date range."""
-        stmt = sa.select(
-            sa.func.coalesce(sa.func.sum(JournalLine.dr_base), 0),
-            sa.func.coalesce(sa.func.sum(JournalLine.cr_base), 0),
-        ).where(
-            JournalLine.account_id == account_id,
-            JournalLine.entry.has(JournalEntry.status == JournalStatus.POSTED.value),
+        """Return (total_dr, total_cr) for *account_id* in the given date range.
+
+        The join to ``journal_entries`` must be explicit. Filtering the status
+        through ``JournalLine.entry.has(...)`` compiles to an EXISTS subquery
+        and leaves ``journal_entries`` out of the FROM clause, so the
+        ``posting_date`` predicates below would add it unjoined — a cartesian
+        product that multiplied every line by the number of posted entries in
+        range, and matched the dates against any entry rather than the line's
+        own.
+        """
+        stmt = (
+            sa.select(
+                sa.func.coalesce(sa.func.sum(JournalLine.dr_base), 0),
+                sa.func.coalesce(sa.func.sum(JournalLine.cr_base), 0),
+            )
+            .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
+            .where(
+                JournalLine.account_id == account_id,
+                JournalEntry.status == JournalStatus.POSTED.value,
+            )
         )
         if from_date is not None:
             stmt = stmt.where(JournalEntry.posting_date >= from_date)
