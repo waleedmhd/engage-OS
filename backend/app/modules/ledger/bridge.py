@@ -27,12 +27,24 @@ from app.modules.ledger.schemas import JournalEntryCreateRequest, JournalLineReq
 
 
 def register_bridge_handlers() -> None:
-    """Wire up all bridge subscribers. Called at app startup."""
+    """Wire up all bridge subscribers.
+
+    Called once at import time from ``app/modules/ledger/__init__.py``.
+    ``subscribe_async`` appends without de-duplicating, so callers must NOT
+    invoke this again — a second call double-registers every handler and
+    posts every bridge journal twice.
+
+    ``FinanceEvents.BILL_MATCHED`` is deliberately NOT subscribed here:
+    ``payables.BillService.issue()`` already posts Dr 2200 / Cr 2100 itself
+    (and records the resulting ``bill.je_id``, which a bridge handler cannot
+    do). Subscribing ``_on_bill_matched`` as well posted the identical entry
+    a second time and silently doubled accounts payable. The event is still
+    emitted for any non-posting consumer.
+    """
     subscribe_async(InventoryEvents.GRN_CONFIRMED, _on_grn_confirmed)
     subscribe_async(InventoryEvents.UNIT_DISPATCHED, _on_unit_dispatched)
     subscribe_async(FinanceEvents.INVOICE_CREATED, _on_invoice_created)
     subscribe_async(InventoryEvents.ADJUSTMENT_CONFIRMED, _on_adjustment_confirmed)
-    subscribe_async(FinanceEvents.BILL_MATCHED, _on_bill_matched)
 
 
 async def _resolve_account_id(session, code: str) -> uuid.UUID:
@@ -183,27 +195,7 @@ async def _on_adjustment_confirmed(event_name: str, **payload) -> None:
     )
 
 
-async def _on_bill_matched(event_name: str, **payload) -> None:
-    """Supplier bill matched: Dr GRN Accrual 2200 / Cr AP 2100."""
-    session = payload.pop("session", None)
-    if session is None:
-        return
-    bill_id = payload.get("bill_id")
-    amt = money(payload.get("matched_amount", "0"))
-    grn_acc = await _resolve_account_id(session, "2200")
-    ap = await _resolve_account_id(session, "2100")
-
-    req = JournalEntryCreateRequest(
-        posting_date=payload.get("posting_date", date.today()),
-        description=f"Bill #{payload.get('bill_no', bill_id)} matched to GRN",
-        voucher_type="journal_entry",
-        lines=[
-            _linereq(grn_acc, "Clear GRN accrual", dr=amt),
-            _linereq(ap, "Accounts payable", cr=amt,
-                     party_type="supplier", party_id=payload.get("supplier_id")),
-        ],
-    )
-    await PostingService(session).post(
-        req, actor_id=payload.get("actor_id"),
-        source_type="supplier_bill", source_id=bill_id, is_system_generated=True,
-    )
+# NOTE: there is deliberately no ``_on_bill_matched`` handler. The supplier-bill
+# posting (Dr 2200 GRN Accrual / Cr 2100 AP) is owned by
+# ``payables.BillService.issue()``, which also records ``bill.je_id``. See the
+# ``register_bridge_handlers`` docstring.

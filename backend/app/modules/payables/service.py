@@ -561,7 +561,7 @@ def _compute_age_bucket(today: date, due_date: date) -> tuple[int, str]:
 
 
 _NUMBER_SEQUENCE_LOCK_SQL = (
-    "SELECT next_value FROM number_sequence "
+    "SELECT next_value FROM number_sequences "
     "WHERE doc_type = :doc_type AND fiscal_year = :fy "
     "FOR UPDATE"
 )
@@ -572,7 +572,7 @@ async def _next_doc_number(
 ) -> str:
     """Allocate the next gapless document number for *doc_type*.
 
-    Uses SELECT ... FOR UPDATE row lock on number_sequence.
+    Uses SELECT ... FOR UPDATE row lock on number_sequences.
     """
     from datetime import date as date_type
 
@@ -591,7 +591,7 @@ async def _next_doc_number(
         next_val = 1
         await session.execute(
             sa.text(
-                "INSERT INTO number_sequence (doc_type, fiscal_year, next_value) "
+                "INSERT INTO number_sequences (doc_type, fiscal_year, next_value) "
                 "VALUES (:doc_type, :fy, :next_val)"
             ),
             {"doc_type": doc_type, "fy": fiscal_year, "next_val": 2},
@@ -600,7 +600,7 @@ async def _next_doc_number(
         next_val = row[0]
         await session.execute(
             sa.text(
-                "UPDATE number_sequence SET next_value = :next_val "
+                "UPDATE number_sequences SET next_value = :next_val "
                 "WHERE doc_type = :doc_type AND fiscal_year = :fy"
             ),
             {"next_val": next_val + 1, "doc_type": doc_type, "fy": fiscal_year},

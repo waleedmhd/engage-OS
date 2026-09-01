@@ -16,6 +16,7 @@ import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.events import emit_event
@@ -127,7 +128,9 @@ class PostingService:
         # All gates passed — write the entry.
         now = datetime.now(tz=timezone.utc)
         entry = await self._entry_repo.create(
-            entry_no=_next_entry_no(self._session, request.voucher_type),
+            entry_no=await _next_entry_no(
+                self._session, request.voucher_type, request.posting_date
+            ),
             posting_date=request.posting_date,
             period_id=period.id,
             voucher_type=request.voucher_type,
@@ -265,22 +268,21 @@ class PostingService:
 # --------------------------------------------------------------- helpers
 
 _NUMBER_SEQUENCE_LOCK_SQL = (
-    "SELECT next_value FROM number_sequence "
+    "SELECT next_value FROM number_sequences "
     "WHERE doc_type = :doc_type AND fiscal_year = :fy "
     "FOR UPDATE"
 )
 
 
-async def _next_entry_no(session, voucher_type: str) -> str:
+async def _next_entry_no(session, voucher_type: str, posting_date: date) -> str:
     """Allocate the next gapless entry number for *voucher_type*.
 
-    Uses SELECT ... FOR UPDATE row lock on number_sequence to prevent gaps
-    under concurrent writers.
+    Uses SELECT ... FOR UPDATE row lock on number_sequences to prevent gaps
+    under concurrent writers. The sequence is scoped to the fiscal year of
+    *posting_date* (not today), so backdated entries are numbered in the year
+    they belong to.
     """
-    from datetime import date as date_type
-
-    today = date_type.today()
-    fiscal_year = today.year
+    fiscal_year = posting_date.year
     prefix = {
         "journal_entry": "JV",
         "bank_entry": "BP",
@@ -294,7 +296,7 @@ async def _next_entry_no(session, voucher_type: str) -> str:
     }.get(voucher_type, "JV")
 
     result = await session.execute(
-        __import__("sqlalchemy").text(_NUMBER_SEQUENCE_LOCK_SQL),
+        text(_NUMBER_SEQUENCE_LOCK_SQL),
         {"doc_type": voucher_type, "fy": fiscal_year},
     )
     row = result.one_or_none()
@@ -303,8 +305,8 @@ async def _next_entry_no(session, voucher_type: str) -> str:
         # First entry of the year — create the sequence row.
         next_val = 1
         await session.execute(
-            __import__("sqlalchemy").text(
-                "INSERT INTO number_sequence (doc_type, fiscal_year, next_value) "
+            text(
+                "INSERT INTO number_sequences (doc_type, fiscal_year, next_value) "
                 "VALUES (:doc_type, :fy, :next_val)"
             ),
             {"doc_type": voucher_type, "fy": fiscal_year, "next_val": 2},
@@ -312,8 +314,8 @@ async def _next_entry_no(session, voucher_type: str) -> str:
     else:
         next_val = row[0]
         await session.execute(
-            __import__("sqlalchemy").text(
-                "UPDATE number_sequence SET next_value = :next_val "
+            text(
+                "UPDATE number_sequences SET next_value = :next_val "
                 "WHERE doc_type = :doc_type AND fiscal_year = :fy"
             ),
             {"next_val": next_val + 1, "doc_type": voucher_type, "fy": fiscal_year},
