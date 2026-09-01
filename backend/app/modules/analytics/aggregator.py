@@ -214,7 +214,10 @@ _CAMPAIGN_UPSERT_SQL = text(
             WHEN (COALESCE(ai.ai_spend, 0) + COALESCE(mc.message_cost, 0)
                   + r.delivered_n * 0.049) = 0
                 THEN NULL
-            ELSE (COALESCE(rev.revenue_attributed, 0)
+            -- Capped at the column's ceiling: revenue is numeric(14,2) and the
+            -- divisor can be a small fraction, so an uncapped ratio overflows
+            -- numeric(10,4) on ordinary data. Same guard as the rates above.
+            ELSE LEAST(999999.9999, COALESCE(rev.revenue_attributed, 0)
                   / (COALESCE(ai.ai_spend, 0) + COALESCE(mc.message_cost, 0)
                      + r.delivered_n * 0.049))::numeric(10,4)
         END AS roi

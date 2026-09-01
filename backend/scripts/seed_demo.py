@@ -1061,6 +1061,7 @@ def backfill_analytics(days: int, rep: Report) -> None:
 
     today = datetime.now(tz=UTC).date()
     ok = 0
+    failures: list[str] = []
     for offset in range(days, -1, -1):
         day = today - timedelta(days=offset)
         try:
@@ -1072,9 +1073,12 @@ def backfill_analytics(days: int, rep: Report) -> None:
                 s.commit()
             ok += 1
         except Exception as exc:  # noqa: BLE001
-            rep.add("analytics", f"day {day} failed: {type(exc).__name__}: {exc}")
-            break
-    rep.add("analytics", f"{ok} days rolled up")
+            # Keep going: each day is independent, so one bad day must not
+            # truncate the rest of the backfill.
+            failures.append(f"{day} {type(exc).__name__}")
+            if len(failures) <= 3:
+                rep.add("analytics", f"day {day} failed: {type(exc).__name__}: {exc}")
+    rep.add("analytics", f"{ok}/{days + 1} days rolled up, {len(failures)} failed")
 
 
 def verify(rep: Report) -> None:
