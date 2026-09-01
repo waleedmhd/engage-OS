@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,13 +55,13 @@ class SalesOrderRepository(BaseRepository[SalesOrder]):
 
     async def generate_so_no(self) -> str:
         """Generate the next SO number: SO-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", SalesOrder.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"SO-{int(year)}-{count:05d}"
+        return f"SO-{year}-{count:05d}"
 
 
 class SalesOrderLineRepository(BaseRepository[SalesOrderLine]):
@@ -111,13 +112,13 @@ class DispatchRepository(BaseRepository[Dispatch]):
 
     async def generate_dispatch_no(self) -> str:
         """Generate the next dispatch number: DPN-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", Dispatch.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"DPN-{int(year)}-{count:05d}"
+        return f"DPN-{year}-{count:05d}"
 
 
 class DispatchLineRepository(BaseRepository[DispatchLine]):

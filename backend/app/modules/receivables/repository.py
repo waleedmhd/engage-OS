@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 
 import sqlalchemy as sa
@@ -125,14 +126,14 @@ class SalesInvoiceRepository(BaseRepository[SalesInvoice]):
 
     async def generate_invoice_no(self) -> str:
         """Generate the next invoice number: INV-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         # Count existing invoices this year + 1, padded to 5 digits.
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", SalesInvoice.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"INV-{int(year)}-{count:05d}"
+        return f"INV-{year}-{count:05d}"
 
 
 class SalesInvoiceLineRepository(BaseRepository[SalesInvoiceLine]):
@@ -174,13 +175,13 @@ class CustomerPaymentRepository(BaseRepository[CustomerPayment]):
 
     async def generate_payment_no(self) -> str:
         """Generate the next payment number: PMT-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", CustomerPayment.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"PMT-{int(year)}-{count:05d}"
+        return f"PMT-{year}-{count:05d}"
 
 
 class PaymentAllocationRepository(BaseRepository[PaymentAllocation]):
@@ -238,10 +239,10 @@ class CreditNoteRepository(BaseRepository[CreditNote]):
 
     async def generate_credit_note_no(self) -> str:
         """Generate the next credit note number: CN-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", CreditNote.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"CN-{int(year)}-{count:05d}"
+        return f"CN-{year}-{count:05d}"

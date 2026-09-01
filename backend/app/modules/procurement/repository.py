@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,13 +55,13 @@ class PurchaseOrderRepository(BaseRepository[PurchaseOrder]):
 
     async def generate_po_no(self) -> str:
         """Generate the next PO number: PO-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", PurchaseOrder.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"PO-{int(year)}-{count:05d}"
+        return f"PO-{year}-{count:05d}"
 
 
 class PurchaseOrderLineRepository(BaseRepository[PurchaseOrderLine]):
@@ -114,13 +115,13 @@ class GRNRepository(BaseRepository[GoodsReceiptNote]):
 
     async def generate_grn_no(self) -> str:
         """Generate the next GRN number: GRN-YYYY-00001 style."""
-        year = sa.func.extract("year", sa.func.now())
+        year = datetime.now(tz=timezone.utc).year
         count_stmt = sa.select(sa.func.count()).where(
             sa.func.extract("year", GoodsReceiptNote.created_at) == year
         )
         result = await self.session.execute(count_stmt)
         count = result.scalar_one() + 1
-        return f"GRN-{int(year)}-{count:05d}"
+        return f"GRN-{year}-{count:05d}"
 
 
 class GRNLineRepository(BaseRepository[GRNLine]):
