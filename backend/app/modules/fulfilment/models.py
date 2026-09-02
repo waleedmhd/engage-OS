@@ -60,7 +60,8 @@ class SalesOrder(UUIDPKMixin, TimestampMixin, Base):
     order_date: Mapped[date] = mapped_column(Date, nullable=False)
 
     lines: Mapped[list["SalesOrderLine"]] = relationship(
-        "SalesOrderLine", back_populates="sales_order", cascade="all, delete-orphan"
+        "SalesOrderLine", back_populates="sales_order", cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
 
@@ -125,7 +126,8 @@ class Dispatch(UUIDPKMixin, TimestampMixin, Base):
     )
 
     lines: Mapped[list["DispatchLine"]] = relationship(
-        "DispatchLine", back_populates="dispatch", cascade="all, delete-orphan"
+        "DispatchLine", back_populates="dispatch", cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
 

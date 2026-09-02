@@ -62,7 +62,8 @@ class PurchaseOrder(UUIDPKMixin, TimestampMixin, Base):
     remarks: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     lines: Mapped[list["PurchaseOrderLine"]] = relationship(
-        "PurchaseOrderLine", back_populates="purchase_order", cascade="all, delete-orphan"
+        "PurchaseOrderLine", back_populates="purchase_order", cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
 
@@ -133,7 +134,8 @@ class GoodsReceiptNote(UUIDPKMixin, TimestampMixin, Base):
     )
 
     lines: Mapped[list["GRNLine"]] = relationship(
-        "GRNLine", back_populates="grn", cascade="all, delete-orphan"
+        "GRNLine", back_populates="grn", cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
 

@@ -86,8 +86,13 @@ class SalesInvoice(UUIDPKMixin, TimestampMixin, Base):
     )
     remarks: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Eager: InvoiceResponse serialises `lines`, and under an AsyncSession a
+    # lazy load during Pydantic attribute extraction raises MissingGreenlet,
+    # which surfaced as a 500 on every list endpoint that did not explicitly
+    # eager-load. selectin issues one extra query per batch, not per row.
     lines: Mapped[list["SalesInvoiceLine"]] = relationship(
-        "SalesInvoiceLine", back_populates="invoice", cascade="all, delete-orphan"
+        "SalesInvoiceLine", back_populates="invoice", cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
 

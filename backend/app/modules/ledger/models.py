@@ -150,8 +150,13 @@ class JournalEntry(UUIDPKMixin, TimestampMixin, Base):
     user_remark: Mapped[str | None] = mapped_column(Text, nullable=True)
     system_remark: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Eager for the same reason as SalesInvoice.lines: JournalEntryResponse
+    # serialises `lines`, and a lazy load during Pydantic extraction under an
+    # AsyncSession raises MissingGreenlet. get_with_lines()'s explicit
+    # joinedload still overrides this per query.
     lines: Mapped[list["JournalLine"]] = relationship(
-        "JournalLine", back_populates="entry", cascade="all, delete-orphan"
+        "JournalLine", back_populates="entry", cascade="all, delete-orphan",
+        lazy="selectin",
     )
     period: Mapped["FiscalPeriod"] = relationship("FiscalPeriod")
     reversed_by: Mapped["JournalEntry | None"] = relationship(

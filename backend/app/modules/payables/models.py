@@ -101,8 +101,12 @@ class SupplierBill(UUIDPKMixin, TimestampMixin, Base):
     remarks: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     supplier: Mapped["Contact"] = relationship("Contact")
+    # Eager for the same reason as SalesInvoice.lines: BillResponse serialises
+    # `lines`, and a lazy load during Pydantic extraction under an AsyncSession
+    # raises MissingGreenlet.
     lines: Mapped[list["SupplierBillLine"]] = relationship(
-        "SupplierBillLine", back_populates="bill", cascade="all, delete-orphan"
+        "SupplierBillLine", back_populates="bill", cascade="all, delete-orphan",
+        lazy="selectin",
     )
     journal_entry: Mapped["JournalEntry | None"] = relationship(
         "JournalEntry", foreign_keys=[je_id]
