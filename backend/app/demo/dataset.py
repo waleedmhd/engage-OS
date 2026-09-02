@@ -319,12 +319,21 @@ def pick_weighted(r: random.Random, weights: tuple[int, ...]) -> int:
 
 
 def message_timestamp(r: random.Random, run_at: datetime, days_ago: int) -> datetime:
-    """A timestamp *days_ago* days back, with realistic hour-of-day shape."""
+    """A timestamp *days_ago* days back, with realistic hour-of-day shape.
+
+    Replacing the hour can push the result past ``run_at`` when *days_ago* is
+    0 and the sampled hour is later than the current one, which would date
+    messages in the future. Shift those back a day rather than re-rolling, so
+    the hour-of-day distribution is preserved.
+    """
     hour = pick_weighted(r, HOUR_WEIGHTS)
-    return (run_at - timedelta(days=days_ago)).replace(
+    ts = (run_at - timedelta(days=days_ago)).replace(
         hour=hour, minute=r.randrange(60), second=r.randrange(60), microsecond=0,
         tzinfo=UTC,
     )
+    if ts > run_at:
+        ts -= timedelta(days=1)
+    return ts
 
 
 def weighted_day_offset(r: random.Random, run_at: datetime, max_days: int) -> int:

@@ -93,11 +93,17 @@ class ReportRepository:
         for row in rows:
             amounts[row["account_type"]] = Decimal(str(row["net_amount"]))
 
+        # net_amount is (credits - debits). Revenue is credit-normal so it is
+        # already positive; COGS and OPEX are debit-normal and come back
+        # negative, so negate them to report the positive costs a P&L states.
+        # (Previously they were returned raw, so the API reported
+        # "cogs": -163000 while computing gross profit from abs(cogs) — the
+        # totals were right but the line items read as negative expenses.)
         revenue = amounts["revenue"]
-        cogs = amounts["cogs"]
-        opex = amounts["opex"]
-        gross_profit = revenue - abs(cogs)
-        net_profit = gross_profit - abs(opex)
+        cogs = -amounts["cogs"]
+        opex = -amounts["opex"]
+        gross_profit = revenue - cogs
+        net_profit = gross_profit - opex
 
         return {
             "revenue": revenue,
