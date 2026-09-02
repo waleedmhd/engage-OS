@@ -342,6 +342,8 @@ async def get_valuation(
     val = await service.compute_stock_value()
     return StockValuationResponse(
         total_value=val["total_value"],
+        serialized_value=val["serialized_value"],
+        bulk_value=val["bulk_value"],
         item_count=val["item_count"],
         last_reconciled_at=None,
     )

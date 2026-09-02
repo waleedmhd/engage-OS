@@ -1460,8 +1460,10 @@ export type StockOnHandResponse = {
 export type StockValuationResponse = {
   total_value: number;
   item_count: number;
+  // The serialized/bulk split of total_value.
   serialized_value: number;
   bulk_value: number;
+  last_reconciled_at: string | null;
 };
 
 export type SerialLookupResponse = {

@@ -276,6 +276,9 @@ class StockTransferRequest(BaseModel):
 
 class StockValuationResponse(BaseModel):
     total_value: Decimal
+    # The serialized/bulk split of total_value, shown as separate cards.
+    serialized_value: Decimal = Decimal("0")
+    bulk_value: Decimal = Decimal("0")
     item_count: int
     last_reconciled_at: datetime | None = None
 

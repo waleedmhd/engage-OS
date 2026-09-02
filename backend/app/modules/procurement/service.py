@@ -325,7 +325,18 @@ class GRNService:
                     self._session.add(balance)
                     await self._session.flush()
 
-                balance.qty += line.qty_received
+                # Maintain the moving-average cost. Without this, avg_cost
+                # stayed at 0 and every bulk row valued at zero, so the stock
+                # report disagreed with the inventory the GRN journal debits
+                # to account 1200. Compute before mutating qty: the weighting
+                # needs the pre-receipt quantity.
+                new_qty = balance.qty + line.qty_received
+                if new_qty > 0:
+                    balance.avg_cost = money(
+                        (balance.qty * balance.avg_cost
+                         + line.qty_received * line.unit_cost) / new_qty
+                    )
+                balance.qty = new_qty
                 qty_after = balance.qty
 
                 # Create StockLedgerEntry.

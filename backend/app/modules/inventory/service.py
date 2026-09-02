@@ -565,7 +565,9 @@ class ValuationService:
         """Compute total stock value: SUM(IN_STOCK units x purchase_cost)
         + SUM(bulk qty x avg_cost).
 
-        Returns {total_value: Decimal, item_count: int}.
+        Returns {total_value, serialized_value, bulk_value, item_count}. The
+        two components were already computed here but discarded; the stock
+        page renders them as separate cards.
         """
         # Serialized: SUM of purchase_cost for all IN_STOCK units.
         serial_stmt = sa.select(
@@ -601,7 +603,12 @@ class ValuationService:
         count_result = await self._session.execute(count_stmt)
         item_count = count_result.scalar_one()
 
-        return {"total_value": total_value, "item_count": item_count}
+        return {
+            "total_value": total_value,
+            "serialized_value": money(serial_value),
+            "bulk_value": money(bulk_value),
+            "item_count": item_count,
+        }
 
     async def reconcile_to_gl(self) -> dict:
         """Compare stock value to GL account 1200 (Inventory) balance.
