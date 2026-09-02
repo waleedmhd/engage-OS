@@ -148,7 +148,7 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tbData.rows.length === 0 ? (
+                  {(tbData.rows ?? []).length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                         No data.
@@ -156,7 +156,7 @@ export default function ReportsPage() {
                     </tr>
                   ) : (
                     <>
-                      {tbData.rows.map((row, i) => (
+                      {(tbData.rows ?? []).map((row, i) => (
                         <tr key={i} className="border-b">
                           <td className="px-4 py-2 font-mono text-xs">{row.account_code}</td>
                           <td className="px-4 py-2">{row.account_name}</td>

@@ -320,8 +320,14 @@ export function confirmDispatch(dispatchId: string): Promise<DispatchResponse> {
 
 // ---------------------------------------------------------------------- Reports
 
+// Uses the ledger endpoint, not /reports/trial-balance. The two return
+// different shapes: /reports returns a flat `items` list of dr/cr totals,
+// while /ledger returns `rows` with the opening/period/closing split plus the
+// totals and difference that TrialBalanceResponse describes and the reports
+// page renders. Pointing this at /reports left tbData.rows undefined, and the
+// unguarded .length crashed the whole Reports page on its default tab.
 export function getTrialBalance(asOfDate: string): Promise<TrialBalanceResponse> {
-  return authedFetch<TrialBalanceResponse>(`/reports/trial-balance?as_of_date=${asOfDate}`);
+  return authedFetch<TrialBalanceResponse>(`/ledger/trial-balance?as_of_date=${asOfDate}`);
 }
 
 export function getPLReport(fiscalYear: number): Promise<PLReportResponse> {
